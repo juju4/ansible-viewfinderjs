@@ -1,0 +1,7 @@
+---
+
+- import_tasks: native.yml
+  when: viewfinderjs_setup == 'native'
+
+- import_tasks: docker.yml
+  when: viewfinderjs_setup == 'docker'

@@ -1,0 +1,21 @@
+---
+
+- name: Ensure dependencies are present
+  package:
+    name:
+      - curl
+      - wget
+      - git
+    state: present
+
+- name: clone ViewFinderJS repo
+  git:
+    name: "{{ viewfinderjs_git_repo | default('https://github.com/i5ik/ViewFinderJS.git') }}"
+    version: "{{ viewfinderjs_version | default('v2.53.0') }}"
+    dest: "{{ viewfinderjs_root }}"
+
+- name: Install ViewFinder node.js package.
+  npm:
+    path: "{{ viewfinderjs_root }}"
+
+# npm start

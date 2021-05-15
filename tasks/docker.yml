@@ -1,0 +1,39 @@
+---
+
+- name: Pull docker image
+  community.docker.docker_image:
+    name: dosyago/browsergapce:2.6
+    source: pull
+
+- name: Fetch chrome.json
+  get_url:
+    url: https://raw.githubusercontent.com/c9fe/ViewFinder/master/chrome.json
+    dest: "{{ viewfinderjs_root }}/chrome.json"
+    mode: '0644'
+
+- name: Set kernel.unprivileged_userns_clone
+  ansible.posix.sysctl:
+    name: kernel.unprivileged_userns_clone
+    value: '1'
+    sysctl_file: /etc/sysctl.d/00-local-userns.conf
+    reload: yes
+
+- name: Set net.ipv4.ip_forward
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_file: /etc/sysctl.d/01-network-ipv4.conf
+    reload: yes
+
+- name: Launch docker
+  community.docker.docker_container:
+    name: myviewfinderjs
+    image: browsergapce
+    state: present
+    recreate: yes
+    exposed_ports:
+      - "{{ viewfinder_docker_port | default('8002') }}"
+    volumes_from:
+      - mydata
+    security_opts:
+      - seccomp: "{{ viewfinderjs_root }}/chrome.json"
