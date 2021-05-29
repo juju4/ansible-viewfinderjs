@@ -4,5 +4,11 @@ viewfinderjs_setup: native
 # viewfinderjs_setup: docker
 
 viewfinderjs_git_repo: 'https://github.com/i5ik/ViewFinderJS.git'
-viewfinderjs_version: v2.53.0
-viewfinderjs_root: /opt/viewfinderjs
+viewfinderjs_version: 111f6cb579e8d0cc4a7e39674eaca74f9460903c
+viewfinderjs_user: _viewfinderjs
+viewfinderjs_home: /var/_viewfinderjs
+viewfinderjs_root: "{{ viewfinderjs_home }}/viewfinderjs"
+
+viewfinderjs_cgroups_restriction_enable: true
+
+viewfinderjs_syslog_target: /var/log/viewfinderjs/viewfinderjs.log

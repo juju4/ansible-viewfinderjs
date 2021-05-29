@@ -1,0 +1,51 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=ViewFinderJS Node.js service
+Requires=network.target
+
+[Service]
+Type=simple
+ExecStart={{ nodejs_path | default('/usr/bin/npm') }} start
+WorkingDirectory={{ viewfinderjs_root }}
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+SyslogIdentifier=viewfinderjs
+User={{ viewfinderjs_user }}
+Group={{ viewfinderjs_user }}
+Environment=CHROME_PATH=/usr/bin/chromium-browser
+
+NoNewPrivileges=yes
+PrivateTmp=true
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+{% if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int > 7) or (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int >= 18) %}
+# InaccessiblePaths=/proc
+ProtectKernelTunables=true
+ProtectKernelModules=yes
+ProtectControlGroups=true
+RestrictRealtime=true
+# RestrictNamespaces=~user mnt
+LockPersonality=true
+{% endif %}
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+{% if not (ansible_virtualization_type is defined and
+          ansible_virtualization_type == "docker"
+        )
+%}
+{% if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int >= 8) or (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int >= 18) %}
+# SystemCallFilter=~@debug @mount @cpu-emulation @obsolete @privileged
+# When system call is disallowed, return error code instead of killing process
+SystemCallErrorNumber=EPERM
+{% endif %}
+{% endif %}
+
+{% if viewfinderjs_cgroups_restriction_enable|bool %}
+CPUShares={{ viewfinderjs_cgroups_cpushares | default('1024') }}
+CPUQuota={{ viewfinderjs_cgroups_cpuquota | default('80%') }}
+MemoryMax={{ viewfinderjs_cgroups_memorymax | default('4G') }}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

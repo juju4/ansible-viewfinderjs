@@ -1,0 +1,52 @@
+---
+
+- name: Debug | ansible_service_mgr
+  debug: var=ansible_service_mgr
+
+- block:
+
+    - name: install systemd configuration
+      template:
+        src: systemd-viewfinderjs.service.j2
+        dest: /lib/systemd/system/viewfinderjs.service
+        mode: '0644'
+        backup: yes
+      register: systemd
+      ignore_errors: true
+      notify:
+        - reload systemd
+        - restart viewfinderjs
+
+    - block:
+        - include: "immutable.yml target_dir=/lib/systemd/system state=pre"
+        - include: "immutable.yml target_dir=/lib/systemd/system/viewfinderjs.service state=pre"
+        - name: install systemd configuration
+          template:
+            src: systemd-viewfinderjs.service.j2
+            dest: /lib/systemd/system/viewfinderjs.service
+            mode: '0644'
+            backup: yes
+          register: systemd
+          notify:
+            - reload systemd
+            - restart viewfinderjs
+        - include: "immutable.yml target_dir=/lib/systemd/system state=post"
+      when: systemd is failed
+
+  # when: ansible_service_mgr == 'systemd'
+  when: >
+    (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int >= 16) or
+    (ansible_os_family == "RedHat" and ansible_distribution_major_version|int >= 7)
+
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: enable and start viewfinderjs systemd service
+  service:
+    name: viewfinderjs
+    enabled: "{{ viewfinderjs_svc_enable | default(true) }}"
+    state: "{{ viewfinderjs_svc_state | default('started') }}"
+  when: >
+    not (ansible_virtualization_type is defined and
+          (ansible_virtualization_type == "docker")
+        )

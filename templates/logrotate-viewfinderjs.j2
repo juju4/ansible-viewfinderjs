@@ -1,0 +1,16 @@
+{{ ansible_managed | comment }}
+## /etc/logrotate.d/viewfinderjs
+{{ viewfinderjs_syslog_target }} {
+    rotate {{ viewfinderjs_logrotate_days | default(30) | int }}
+    daily
+    missingok
+    notifempty
+    delaycompress
+    compress
+    create 660 {{ syslog_user | default('root') }} {% if ansible_distribution == 'Ubuntu' %}syslog{% else %}root{% endif %}
+
+    sharedscripts
+{% if ansible_distribution == 'Ubuntu' %}
+    su root syslog
+{% endif %}
+}

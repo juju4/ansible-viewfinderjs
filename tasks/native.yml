@@ -6,16 +6,76 @@
       - curl
       - wget
       - git
+      - pulseaudio
+      - pulseaudio-utils
+      - lame
+      - chromium-browser
     state: present
+
+- name: Ensure viewfinderjs user exists
+  user:
+    name: "{{ viewfinderjs_user }}"
+    comment: Remote Browser Isolation user - viewfinderjs
+    home: "{{ viewfinderjs_home }}"
 
 - name: clone ViewFinderJS repo
   git:
     name: "{{ viewfinderjs_git_repo | default('https://github.com/i5ik/ViewFinderJS.git') }}"
-    version: "{{ viewfinderjs_version | default('v2.53.0') }}"
+    version: "{{ viewfinderjs_version }}"
     dest: "{{ viewfinderjs_root }}"
+    force: no
+    update: no
+  become: yes
+  become_user: "{{ viewfinderjs_user }}"
 
-- name: Install ViewFinder node.js package.
+- name: Remove use of sudo and browsers cgroups as handled by systemd
+  replace:
+    path: "{{ viewfinderjs_root }}/zombie-lord/custom-launcher/dist/chrome-launcher.js"
+    regexp: '^sudo -g browsers '
+    replace: ''
+    mode: '0644'
+  with_items:
+    - { p: "{{ viewfinderjs_root }}/zombie-lord/custom-launcher/dist/chrome-launcher.js",
+        re: '^sudo -g browsers ',
+        rep: ''
+    }
+    - { p: "{{ viewfinderjs_root }}/dstart.sh",
+        re: "^trap 'sudo kill $BGPID; exit' SIGINT",
+        rep: "trap 'kill $BGPID; exit' SIGINT"
+    }
+
+- name: Run npm audit
+  command: npm audit
+  args:
+    chdir: "{{ viewfinderjs_root }}"
+  changed_when: false
+  failed_when: false
+  register: npma
+- name: Debug | npm audit output
+  debug: var=npma
+
+- name: Run npm audit fix
+  command: npm audit fix
+  args:
+    chdir: "{{ item }}"
+  with_items:
+    - "{{ viewfinderjs_root }}"
+    - "{{ viewfinderjs_root }}/zombie-lord/custom-launcher"
+  when: "'found 0 vulnerabilities' not in npma.stdout"
+
+- name: Install ViewFinder node.js packages.
   npm:
-    path: "{{ viewfinderjs_root }}"
+    path: "{{ item }}"
+    # code has interactive script
+    ignore_scripts: yes
+  become: yes
+  become_user: "{{ viewfinderjs_user }}"
+  with_items:
+    - "{{ viewfinderjs_root }}"
+    - "{{ viewfinderjs_root }}/public/voodoo"
+    - "{{ viewfinderjs_root }}/zombie-lord"
+    - "{{ viewfinderjs_root }}/zombie-lord/custom-launcher"
 
-# npm start
+- include_tasks: rsyslog.yml
+- include_tasks: logrotate.yml
+- include_tasks: systemd.yml

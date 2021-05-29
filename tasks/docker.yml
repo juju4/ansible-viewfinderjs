@@ -5,10 +5,16 @@
     name: dosyago/browsergapce:2.6
     source: pull
 
+- name: Ensure ViewFinderJS directory exists
+  file:
+    path: "{{ viewfinderjs_home }}"
+    state: directory
+    mode: '0755'
+
 - name: Fetch chrome.json
   get_url:
     url: https://raw.githubusercontent.com/c9fe/ViewFinder/master/chrome.json
-    dest: "{{ viewfinderjs_root }}/chrome.json"
+    dest: "{{ viewfinderjs_home }}/chrome.json"
     mode: '0644'
 
 - name: Set kernel.unprivileged_userns_clone
@@ -25,15 +31,15 @@
     sysctl_file: /etc/sysctl.d/01-network-ipv4.conf
     reload: yes
 
+# FIXME: seems to crash. ok if launching manually
 - name: Launch docker
   community.docker.docker_container:
     name: myviewfinderjs
-    image: browsergapce
+    image: dosyago/browsergapce:2.6
     state: present
     recreate: yes
+    detach: yes
     exposed_ports:
       - "{{ viewfinder_docker_port | default('8002') }}"
-    volumes_from:
-      - mydata
     security_opts:
-      - seccomp: "{{ viewfinderjs_root }}/chrome.json"
+      - "seccomp:{{ viewfinderjs_home }}/chrome.json"
