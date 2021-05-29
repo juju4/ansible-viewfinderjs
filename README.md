@@ -4,6 +4,7 @@
 # viewfinderjs ansible role
 
 Install Remote Browser Isolation ViewFinderJS
+This is work in progress and not functional at this point
 
 * https://dosyago.com/
 * https://github.com/i5ik/ViewFinderJS
@@ -35,8 +36,7 @@ For example
 viewfinderjs_setup: native
 # viewfinderjs_setup: docker
 viewfinderjs_git_repo: 'https://github.com/i5ik/ViewFinderJS.git'
-viewfinderjs_version: v2.53.0
-viewfinderjs_root: /opt/viewfinderjs
+viewfinderjs_version: 111f6cb579e8d0cc4a7e39674eaca74f9460903c
 ```
 
 ## Continuous integration
@@ -51,7 +51,20 @@ $ MOLECULE_DISTRO=ubuntu:20.04 molecule test --destroy=never
 
 ## Troubleshooting & Known issues
 
-N/A
+* Warning! npm outdated and audit returns issues including command injection on May 2021.
+
+* Warning! docker image is 2.41GB and latest 2.6 tags is 7 months old.
+
+* `ChromeLauncher Waiting for browser.......................` in log
+Likely systemd restrictions too strict. Ensure following options are not used:
+InaccessiblePaths=/proc, RestrictNamespaces=~user mnt, SystemCallFilter
+
+* `The setuid sandbox is not running as root. Common causes:`
+result of systemd restrictions.
+
+* For TLS support, certificates are needed in sslcert/{master,staging} directories.
+
+* Only getting VF Logo, progress bar loading and ending, and nothing more.
 
 ## License
 
