@@ -18,5 +18,6 @@ galaxy_info:
     - internet
     - browser
     - remote
-dependencies:
-  - geerlingguy.nodejs
+dependencies: []
+# only if native
+#  - geerlingguy.nodejs
