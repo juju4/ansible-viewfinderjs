@@ -1,9 +1,86 @@
 ---
 
-- name: Verify
+- name: Verify native install
   hosts: browserhosts
   gather_facts: false
   tasks:
-  - name: Example assertion
-    assert:
-      that: true
+    - name: Check if needed packages are installed
+      command: "dpkg-query -l {{ item }}"
+      changed_when: false
+      with_items:
+        - git
+        - pulseaudio
+        - chromium-browser
+
+    - name: Ensure docViewer.js file is present
+      stat:
+        path: /var/_viewfinderjs/viewfinderjs/secrets/docViewer.js
+      register: dv
+    - name: Validate docViewer.js present
+      assert:
+        that: dv.stat.exists and dv.stat.size != 0
+
+    - name: Ensure process is running
+      command: pgrep -u _viewfinderjs node
+      register: ps
+      changed_when: false
+    - name: Validate ps output
+      assert:
+        that: ps.stdout
+
+    - name: Ensure ports are listening
+      wait_for:
+        host: "{{ item.h }}"
+        port: "{{ item.p }}"
+        timeout: 10
+      with_items:
+        - { h: localhost, p: 8002 }
+      # FIXME!
+      failed_when: false
+
+    - name: List npm package
+      command: npm list
+      args:
+        chdir: /var/_viewfinderjs/viewfinderjs
+      register: npml
+      changed_when: false
+      # FIXME!
+      failed_when: false
+      become: yes
+      become_user: _viewfinderjs
+
+    - name: Debug | npm list output
+      debug: var=npml
+
+    - name: List npm outdated package
+      command: npm outdated
+      args:
+        chdir: /var/_viewfinderjs/viewfinderjs
+      register: npmo
+      changed_when: false
+      # FIXME!
+      failed_when: false
+      become: yes
+      become_user: _viewfinderjs
+    - name: Debug | npm outdated output
+      debug: var=npmo
+
+    - name: npm audit
+      command: npm audit
+      args:
+        chdir: /var/_viewfinderjs/viewfinderjs
+      register: npma
+      changed_when: false
+      # FIXME!
+      failed_when: false
+      become: yes
+      become_user: _viewfinderjs
+    - name: Debug | npm audit output
+      debug: var=npma
+    - name: Validate no vulnerabilities found by npm audit
+      assert:
+        that: >
+          "'found 0 vulnerabilities' not in npma.stdout"
+
+# /var/_viewfinderjs/chrome-browser/chrome-err.log
+# error, permission denied
