@@ -2,15 +2,26 @@
 
 - name: Verify native install
   hosts: browserhosts
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Debian vars
+      set_fact:
+        chromium_pkg: chromium-browser
+      when: ansible_os_family == 'Debian'
+    - name: RedHat vars
+      set_fact:
+        chromium_pkg: chromium
+      when: ansible_os_family == "RedHat"
   tasks:
-    - name: Check if needed packages are installed
-      command: "dpkg-query -l {{ item }}"
-      changed_when: false
-      with_items:
-        - git
-        - pulseaudio
-        - chromium-browser
+    - name: Debug | ansible_virtualization_type
+      debug: var=ansible_virtualization_type verbosity=1
+
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+    - name: Validate that needed packages are present
+      assert:
+        that: ansible_facts.packages['git'] and ansible_facts.packages['pulseaudio'] and ansible_facts.packages[chromium_pkg]
 
     - name: Ensure docViewer.js file is present
       stat:
@@ -24,9 +35,14 @@
       command: pgrep -u _viewfinderjs node
       register: ps
       changed_when: false
+      failed_when: false
     - name: Validate ps output
       assert:
         that: ps.stdout
+      when: >
+        not (ansible_virtualization_type is defined and
+              (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
+            )
 
     - name: Ensure ports are listening
       wait_for:
@@ -37,6 +53,10 @@
         - { h: localhost, p: 8002 }
       # FIXME!
       failed_when: false
+      when: >
+        not (ansible_virtualization_type is defined and
+              (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
+            )
 
     - name: List npm package
       command: npm list
