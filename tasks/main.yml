@@ -1,5 +1,12 @@
 ---
 
+- name: Include version-specific variables for Debian.
+  include_vars: Debian.yml
+  when: ansible_os_family == 'Debian'
+- name: Include version-specific variables for RedHat
+  include_vars: RedHat.yml
+  when: ansible_os_family == "RedHat"
+
 - import_tasks: native.yml
   when: viewfinderjs_setup == 'native'
 

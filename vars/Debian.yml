@@ -1,0 +1,10 @@
+---
+
+viewfinderjs_deps:
+  - curl
+  - wget
+  - git
+  - pulseaudio
+  - pulseaudio-utils
+  - lame
+  - chromium-browser

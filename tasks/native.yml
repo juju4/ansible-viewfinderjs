@@ -1,15 +1,14 @@
 ---
 
+- name: Debian | update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: "{{ viewfinderjs_apt_cache_valid_time | default(3600) }}"
+  when: ansible_os_family == 'Debian'
+
 - name: Ensure dependencies are present
   package:
-    name:
-      - curl
-      - wget
-      - git
-      - pulseaudio
-      - pulseaudio-utils
-      - lame
-      - chromium-browser
+    name: "{{ viewfinderjs_deps }}"
     state: present
 
 - name: Ensure viewfinderjs user exists
