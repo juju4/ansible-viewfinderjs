@@ -48,5 +48,5 @@
     state: "{{ viewfinderjs_svc_state | default('started') }}"
   when: >
     not (ansible_virtualization_type is defined and
-          (ansible_virtualization_type == "docker")
+          (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
         )
