@@ -34,5 +34,6 @@
         cache_valid_time: "{{ viewfinderjs_apt_cache_valid_time | default(3600) }}"
       when: ansible_os_family == 'Debian'
   roles:
+    - { role: juju4.redhat_epel, when: ansible_os_family == "RedHat" }
     - geerlingguy.nodejs
     - juju4.viewfinderjs

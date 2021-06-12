@@ -1,5 +1,6 @@
 ---
 warn_list:
   - syntax-check  # Ansible syntax check failed
+  - internal-error  # Unexpected internal error
 skip_list:
   - '106'  # Role name {} does not match ``^[a-z][a-z0-9_]+$`` pattern'
