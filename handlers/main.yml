@@ -6,7 +6,7 @@
     daemon_reload: yes
   when: >
     not (ansible_virtualization_type is defined and
-          (ansible_virtualization_type == "docker")
+          (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
         )
 
 - name: restart viewfinderjs
@@ -15,13 +15,13 @@
     state: restarted
   when: >
     not (ansible_virtualization_type is defined and
-          (ansible_virtualization_type == "docker")
+          (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
         )
 
 - name: restart rsyslog
   service: name=rsyslog state=restarted
   when: >
     not (ansible_virtualization_type is defined and
-          (ansible_virtualization_type == "docker") and
+          (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd") and
           (ansible_distribution == 'Alpine' or ansible_os_family == 'RedHat')
         )
