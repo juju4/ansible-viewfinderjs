@@ -8,3 +8,5 @@ viewfinderjs_deps:
   - pulseaudio-utils
   - lame
   - chromium-browser
+
+syslog_user: syslog

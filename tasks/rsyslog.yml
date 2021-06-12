@@ -25,7 +25,7 @@
     mode: '0775'
     # FIXME: or just root?
     owner: "{{ viewfinderjs_user }}"
-    group: "syslog"
+    group: "{{ syslog_user | default('root') }}"
   when: >
     "'/var/log/' in viewfinderjs_syslog_target" and
     viewfinderjs_syslog_target|dirname != '/var/log'
