@@ -2,6 +2,7 @@
 [![Actions Status - Devel](https://github.com/juju4/ansible-viewfinderjs/workflows/AnsibleCI/badge.svg?branch=devel)](https://github.com/juju4/ansible-viewfinderjs/actions?query=branch%3Adevel)
 
 # viewfinderjs ansible role
+*Warning! Considering interest and evolution of product license to a non-opensource license, it is likely that this role won't be maintained and will be archived*
 
 Install Remote Browser Isolation ViewFinderJS
 This is work in progress and not functional at this point
